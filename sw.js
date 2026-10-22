@@ -1,5 +1,5 @@
 const VERSION='skillbridge-v4.1.0';
-const ASSETS=['/','/index.html','/app.css','/app.js','/studio.js','/studio.css','/any-topic.js','/cloud-db.js','/catalog.js','/skill-cases.js','/auth.js','/firebase-config.js','/content.js','/offline.js','/icon.svg','/manifest.webmanifest'];
+const ASSETS=['/','/index.html','/app.css','/app.js','/studio.js','/video-pipeline.js','/studio.css','/any-topic.js','/cloud-db.js','/catalog.js','/skill-cases.js','/auth.js','/firebase-config.js','/content.js','/offline.js','/icon.svg','/manifest.webmanifest'];
 self.addEventListener('install',event=>{event.waitUntil(caches.open(VERSION).then(cache=>cache.addAll(ASSETS)).then(()=>self.skipWaiting()));});
 self.addEventListener('activate',event=>{event.waitUntil(Promise.all([caches.keys().then(keys=>Promise.all(keys.filter(x=>x!==VERSION).map(x=>caches.delete(x)))),self.clients.claim()]));});
 self.addEventListener('fetch',event=>{
