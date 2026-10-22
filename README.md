@@ -54,3 +54,24 @@ Three 4-second clips are allowed per pilot learner per UTC day; costs are incurr
 **Before public launch:** add durable object storage (e.g. Vercel Blob) and CDN caching, webhook-driven job completion, provider cost budgets/usage alerts, moderation and curriculum quality reviews, optional higher-resolution models, and robust narration/subtitles using verified language voices.
 
 **Important:** Generating a video is a paid operation and availability varies by provider account and region. This repository includes the pipeline; it does not imply that Sora API credentials or Redis have been enabled on the Vercel project.
+
+
+## AI video tutorial pipeline (pilot implementation)
+
+The Video Studio is wired into the existing **Studio → Watch visual explanation** lesson screen. Each selected lesson offers up to three independently generated five-second clips: concept, real-world example, and practice/application. Playback persists between page reloads through per-user local job identifiers; the server stores generation operations in Redis and generated video bytes in Vercel Blob.
+
+**Activation is disabled by default.** To use the paid generation service, configure these **Vercel server-side environment variables** on the existing `skillbridge-naija-ai` project:
+
+- `AI_GATEWAY_API_KEY`: AI Gateway key with billing and a video model enabled.
+- `VIDEO_MODEL`: an asynchronous model supported by Vercel AI Gateway (default `klingai/kling-v3.0-t2v`).
+- `VIDEO_ALLOWED_UIDS`: comma-separated Firebase Auth user IDs authorized for the pilot. Do **not** use `*`.
+- `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN`: persistent server-side job storage and daily quota counters.
+- `BLOB_READ_WRITE_TOKEN`: Vercel Blob store write token for archival.
+
+These secrets **must not** be committed to GitHub or exposed in `firebase-config.js`. No generation is attempted until an eligible signed-in user explicitly presses a Generate button. Daily quota is three *new clips* per UID, with Redis deduplication and seven-day temporary job records. A successful result is stored with a thirty-day metadata TTL. Storage may remain billable after metadata expires; configure a Blob lifecycle policy and monitor usage.
+
+API routes: `POST /api/video-start` authenticates Firebase ID token, checks pilot allowlist, validates content, enforces quotas and starts async video generation; `GET /api/video-status?id=...` verifies the current user owns the job, polls its status and archives the completed clip. The production static site does not gain API functionality until this repository is linked and deployed to the correct Vercel project.
+
+**Known limitations:** AI video may contain visual mistakes; currently segments are separately playable rather than assembled into one movie. Generated video narration is model-dependent; accurate Yoruba, Hausa and Igbo voiceover is *not verified*. Enabling public generation requires billing safeguards, App Check or another abuse-defense layer, strong input moderation, provider webhooks/background archival for more reliable completion, privacy review of publicly hosted media, and end-to-end testing with pilot accounts.
+
+**Deployment**: grant the Erioluwa23 GitHub repo access to the Vercel GitHub App, then connect it to the existing Vercel project, not a new one. Verify the Node API routes and required environment variables. Until then, these changes exist in GitHub only.
