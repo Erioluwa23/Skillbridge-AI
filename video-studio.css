@@ -1,0 +1,10 @@
+/* Optional AI video tutorial controls */
+.sb-ai-video{margin:24px 0 8px;padding:19px;border-radius:18px;background:#f0f9f4;color:#123d2e;border:1px solid #bcdfc8}
+.sb-ai-video h3{font-size:1.12rem;margin:0 0 8px}
+.sb-ai-video p{font-size:.84rem;line-height:1.55}
+.sb-ai-chapter{margin:12px 0;background:#fff;border:1px solid #d8e8de;border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:9px}
+.sb-ai-chapter span{font-size:.8rem;color:#49705b}
+.sb-ai-chapter button{border:0;background:#146c46;color:#fff;border-radius:10px;padding:12px;cursor:pointer;font-weight:650}
+.sb-ai-chapter button:disabled{opacity:.55;cursor:progress}
+.sb-ai-chapter video{max-width:100%;width:100%;border-radius:12px;background:#122a20}
+.sb-ai-note{min-height:1.3rem}
