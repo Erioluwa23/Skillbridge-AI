@@ -1,0 +1,52 @@
+name: Validate SkillBridge source
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  static-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Check JavaScript syntax
+        shell: bash
+        run: |
+          set -euo pipefail
+          for f in ./*.js; do
+            node --check "$f"
+          done
+      - name: Check static resource references
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          import assert from 'node:assert/strict';
+          for (const name of ['index.html', 'app.js', 'studio.js', 'vercel.json', 'sw.js']) {
+            assert(fs.existsSync(name), 'Missing required file: ' + name);
+          }
+          const html = fs.readFileSync('index.html', 'utf8');
+          for (const path of [...html.matchAll(/(?:src|href)="\/(.*?)"/g)].map(x=>x[1])) {
+            assert(fs.existsSync(path), 'Missing HTML asset: ' + path);
+          }
+          for (const file of fs.readdirSync('.').filter(x=>x.endsWith('.js'))) {
+            const js=fs.readFileSync(file,'utf8');
+            for (const relative of [...js.matchAll(/from\s+['"]\.\/(.*?)['"]/g)].map(x=>x[1])) {
+              assert(fs.existsSync(relative), file+': missing import '+relative);
+            }
+          }
+          const sw=fs.readFileSync('sw.js','utf8');
+          const cache=sw.match(/const ASSETS\s*=\s*\[(.*?)\]/s);
+          assert(cache,'Service worker asset manifest missing');
+          for(const asset of [...cache[1].matchAll(/['"]\/(.*?)['"]/g)].map(x=>x[1])){
+            if(asset) assert(fs.existsSync(asset),'Missing service worker asset '+asset);
+          }
+          console.log('Static asset checks passed');
+          NODE
