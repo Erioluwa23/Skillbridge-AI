@@ -1,0 +1,14 @@
+{
+  "name": "skillbridge-ai",
+  "private": true,
+  "type": "module",
+  "version": "1.1.0",
+  "engines": { "node": ">=22" },
+  "dependencies": {
+    "ai": "^6.0.0",
+    "@ai-sdk/gateway": "^3.0.0",
+    "@vercel/blob": "^2.0.0",
+    "@upstash/redis": "^1.35.0",
+    "jose": "^6.0.0"
+  }
+}
