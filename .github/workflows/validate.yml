@@ -1,0 +1,40 @@
+name: Validate SkillBridge source
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  static-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '22'
+      - name: JavaScript syntax and local asset checks
+        run: |
+          set -euo pipefail
+          for file in *.js; do node --check "$file"; done
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          for (const file of ['index.html','app.js','studio.js','app.css','studio.css','sw.js','manifest.webmanifest']) {
+            if (!fs.existsSync(file)) throw new Error('Missing required file: ' + file);
+          }
+          const html = fs.readFileSync('index.html','utf8');
+          for(const [,path] of html.matchAll(/(?:src|href)="\/([^"#?]+)"/g)) {
+            if(!fs.existsSync(path)) throw new Error('HTML asset missing: ' + path);
+          }
+          for(const f of fs.readdirSync('.').filter(x=>x.endsWith('.js'))) {
+            const text = fs.readFileSync(f,'utf8');
+            for(const [,p] of text.matchAll(/(?:from\s*|import\()\s*['"]\.\/([^'"]+)['"]/g)){
+              if(!fs.existsSync(p)) throw new Error(f+' requires missing local module '+p);
+            }
+          }
+          console.log('JavaScript syntax and relative asset checks passed.');
+          NODE
