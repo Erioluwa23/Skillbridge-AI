@@ -38,3 +38,19 @@ Note: The GitHub integration authorized for ChatGPT is **different** from the Gi
 - `auth.js`, `firebase-config.js`, `cloud-db.js`: user authentication and data sync.
 - `offline.js`, `sw.js`, `manifest.webmanifest`, `icon.svg`: offline/PWA assets.
 - `vercel.json`: deployment headers.
+
+## AI video tutorial pipeline (pilot)
+
+The new **AI video tutorial** section appears in AI Studio's *Watch visual explanation* tab. It supports three distinct 4-second educational clips per lesson: concept, worked example, and practical application. Generation is asynchronous, uses the existing Firebase account identity, polls job status and plays the resulting MP4 in the browser. The storyboard export remains available as a low-cost alternative.
+
+**Deployment configuration is required before real AI video generation can run.** In the existing Vercel project, set server-only environment variables:
+
+- `OPENAI_API_KEY`: API key with Sora Video API access and funded usage. **Never place this key in browser JavaScript or GitHub.**
+- `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN`: a dedicated Upstash Redis REST database for job ownership, deduplication, and per-user quotas.
+- `VIDEO_ALLOWED_UIDS`: comma-separated Firebase Authentication UIDs allowed to generate videos during the pilot. This intentionally fails closed when unset.
+
+Three 4-second clips are allowed per pilot learner per UTC day; costs are incurred for every accepted provider render request. Pilot users must opt in by pressing **Generate** on a chosen chapter. No automatic generation happens merely by opening lessons. The clips are retrieved with authenticated requests, but currently are not saved permanently to a media store; provider asset retention may expire. Video content may be imperfect or inconsistent, particularly in Yoruba, Hausa or Igbo; verify content and pronunciation with native-language educators.
+
+**Before public launch:** add durable object storage (e.g. Vercel Blob) and CDN caching, webhook-driven job completion, provider cost budgets/usage alerts, moderation and curriculum quality reviews, optional higher-resolution models, and robust narration/subtitles using verified language voices.
+
+**Important:** Generating a video is a paid operation and availability varies by provider account and region. This repository includes the pipeline; it does not imply that Sora API credentials or Redis have been enabled on the Vercel project.
