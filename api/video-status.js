@@ -1,4 +1,3 @@
-import { experimental_getVideoStatus as getVideoStatus } from 'ai';
 import { put } from '@vercel/blob';
 import { identity, allowed, ready, cache, jobKey, send, safeError } from '../lib/video-service.js';
 
@@ -15,6 +14,8 @@ export default async function handler(req, res) {
     if (!job || job.uid !== uid) return send(res, 404, { error: 'Video not found.' });
     if (job.status === 'completed') return send(res, 200, { status:'completed', url:job.url, chapter:job.item.part });
     if (job.status === 'failed') return send(res, 200, { status:'failed', error:'This clip could not be generated.' });
+    const { experimental_getVideoStatus: getVideoStatus } = await import('ai');
+    if (typeof getVideoStatus !== 'function') return send(res, 503, { error: 'AI video status requires an approved, compatible provider adapter.' });
     const result = await getVideoStatus(job.model, { operation: job.operation });
     if (result.status !== 'completed') {
       if (result.status === 'failed') {

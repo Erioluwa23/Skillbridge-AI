@@ -45,8 +45,11 @@ The repository contains a new **🎬 AI Video** launcher (`video-ui.js`, `video-
 
 The server verifies Firebase Authentication ID tokens using Google's public keys, restricts rendering to an allowlist, validates inputs, rate-limits paid generation through Upstash Redis, and stores successfully rendered MP4s in Vercel Blob. Redis caches the result to avoid repeat rendering of the same learner/lesson/section. The provider is called through the Vercel AI SDK v6 (`experimental_generateVideo`) and AI Gateway. The default pilot model is `xai/grok-imagine-video`, overridable with `VIDEO_MODEL`. Provider capabilities, pricing and model availability may change.
 
+**Migration safety:** Video rendering is intentionally disabled during the GitHub-to-Vercel migration. The older start/status SDK adapters are incompatible with the installed AI SDK, so do not enable provider access until a reviewed adapter and an approved pilot are ready. Disabled endpoints must respond safely without making paid video requests.
+
 **Server-only environment variables required on the EXISTING Vercel project**:
 
+- `VIDEO_RENDER_ENABLED`: required explicit opt-in (`true`); leave unset until the owner approves paid rendering and the adapter is validated.
 - `AI_GATEWAY_API_KEY`: AI Gateway key with video generation access and budget.
 - `BLOB_READ_WRITE_TOKEN`: Vercel Blob store read/write token.
 - `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN`: persistent Upstash Redis REST endpoint/credential.

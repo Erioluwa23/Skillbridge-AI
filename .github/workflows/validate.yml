@@ -20,7 +20,7 @@ jobs:
       - name: JavaScript syntax and local asset checks
         run: |
           set -euo pipefail
-          for file in *.js; do node --check "$file"; done
+          for file in ./*.js ./api/*.js ./api/video/*.js ./lib/*.js; do node --check "$file"; done
           node --input-type=module <<'NODE'
           import fs from 'node:fs';
           for (const file of ['index.html','app.js','studio.js','app.css','studio.css','sw.js','manifest.webmanifest']) {
