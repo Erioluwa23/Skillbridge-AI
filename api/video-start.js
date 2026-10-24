@@ -1,5 +1,4 @@
 import { randomUUID } from 'node:crypto';
-import { experimental_startVideo as startVideo } from 'ai';
 import { identity, allowed, ready, cache, checkInput, lessonKey, jobKey, MODEL, videoPrompt, send, safeError } from '../lib/video-service.js';
 
 export default async function handler(req, res) {
@@ -9,6 +8,10 @@ export default async function handler(req, res) {
     if (!allowed(uid)) return send(res, 403, { error: 'Video generation is currently available to pilot accounts only.' });
     if (!ready()) return send(res, 503, { error: 'Video generation is not configured yet.' });
     const item = checkInput(req.body);
+    // The AI SDK currently supports generateVideo, not experimental_startVideo.
+    // Do not acquire a quota lock or charge a provider if the adapter is unavailable.
+    const { experimental_startVideo: startVideo } = await import('ai');
+    if (typeof startVideo !== 'function') return send(res, 503, { error: 'AI video rendering requires an approved, compatible provider adapter.' });
     const db = cache();
     const key = lessonKey(uid, item.lessonId, item.language, item.part);
     // Redis NX lock prevents rapid repeat requests and duplicate paid generations.
